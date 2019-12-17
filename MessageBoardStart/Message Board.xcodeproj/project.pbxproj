@@ -236,8 +236,8 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(SRCROOT)/Carthage/Build/iOS/MessageKit.framework",
-				"$(SRCROOT)/Carthage/Build/iOS/InputBarAccessoryView.framework",
+				"$(DERIVED_FILE_DIR)/Carthage/Build/iOS/MessageKit.framework",
+				"$(DERIVED_FILE_DIR)/Carthage/Build/iOS/InputBarAccessoryView.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;

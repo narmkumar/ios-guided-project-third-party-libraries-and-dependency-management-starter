@@ -27,7 +27,9 @@ class MessageDetailViewController: MessagesViewController, InputBarAccessoryView
         super.viewDidLoad()
         
         messageInputBar.delegate = self
-        
+        messagesCollectionView.messagesDataSource = self
+        messagesCollectionView.messagesLayoutDelegate = self
+        messagesCollectionView.messagesDisplayDelegate = self
     }
     
 }
@@ -58,3 +60,44 @@ extension MessageDetailViewController: MessagesDataSource {
     }
 }
 
+extension MessageDetailViewController: MessagesLayoutDelegate {
+    func messageTopLabelHeight(for message: MessageType, at indexPath: IndexPath, in messagesCollectionView: MessagesCollectionView) -> CGFloat {
+        return 16
+    }
+    
+    func messageBottomLabelHeight(for message: MessageType, at indexPath: IndexPath, in messagesCollectionView: MessagesCollectionView) -> CGFloat {
+        return 16
+    }
+}
+
+// added after Lecture Video
+
+extension MessageDetailViewController: MessagesDisplayDelegate {
+    
+    func textColor(for message: MessageType, at indexPath: IndexPath, in messagesCollectionView: MessagesCollectionView) -> UIColor {
+        return isFromCurrentSender(message: message) ? .white : .black
+    }
+    
+    func backgroundColor(for message: MessageType, at indexPath: IndexPath, in messagesCollectionView: MessagesCollectionView) -> UIColor {
+        return isFromCurrentSender(message: message) ? .blue : .green
+    }
+    
+    func configureAvatarView(_ avatarView: AvatarView, for message: MessageType, at indexPath: IndexPath, in messagesCollectionView: MessagesCollectionView) {
+        let initials = String(message.sender.displayName.first ?? Character(""))
+        let avatar = Avatar(image: nil, initials: initials)
+        avatarView.set(avatar: avatar)
+    }
+    
+    func inputBar(_ inputBar: InputBarAccessoryView, didPressSendButtonWith text: String) {
+        guard let messageThread = self.messageThread,
+            let currentSender = currentSender() as? Sender else { return }
+        
+        self.messageThreadController?.createMessage(in: messageThread, withText: text, sender: currentSender, completion: {
+            DispatchQueue.main.async {
+                self.messagesCollectionView.reloadData()
+            }
+        })
+        
+        inputBar.inputTextView.text = ""
+    }
+}
