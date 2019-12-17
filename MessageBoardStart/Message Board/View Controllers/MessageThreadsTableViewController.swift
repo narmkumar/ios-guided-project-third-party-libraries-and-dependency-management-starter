@@ -8,6 +8,12 @@
 
 import UIKit
 
+enum Keys: String {
+    case currentUser = "currentUser"
+    case segue = "ViewMessageDetail"
+    
+}
+
 class MessageThreadsTableViewController: UITableViewController {
 
     // MARK: - Properties
@@ -15,6 +21,39 @@ class MessageThreadsTableViewController: UITableViewController {
     let messageThreadController = MessageThreadController()
     
     @IBOutlet weak var threadTitleTextField: UITextField!
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        if let currentUserDictionary = UserDefaults.standard.value(forKey: Keys.currentUser.rawValue) as? [String : String ] {
+            let currentUser = Sender(dictionary: currentUserDictionary)
+            messageThreadController.currentUser = currentUser
+        } else {
+            // Create an alert that asks the user for a username and sves it to User Defaults
+            let alert = UIAlertController(title: "Set a username", message: nil, preferredStyle: .alert)
+            var usernameTextField: UITextField!
+            
+            alert.addTextField { (textfield) in
+                textfield.placeholder = "Username:"
+                usernameTextField = textfield
+            }
+            
+            let submitAction = UIAlertAction(title: "Submit", style: .default) { (_) in
+                // Take the text field's tet and save it to User Defaults
+                let displayName = usernameTextField.text ?? "No Name"
+                let id = UUID().uuidString
+                let sender = Sender(senderId: id, displayName: displayName)
+                
+                UserDefaults.standard.set(sender.dictionaryRepresents, forKey: Keys.currentUser.rawValue)
+                self.messageThreadController.currentUser = sender
+            }
+            
+            alert.addAction(submitAction)
+            present(alert, animated: true, completion: nil)
+            
+        }
+        
+    }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
@@ -59,9 +98,9 @@ class MessageThreadsTableViewController: UITableViewController {
     // MARK: - Navigation
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == "ViewMessageThread" {
+        if segue.identifier == Keys.segue.rawValue {
             guard let indexPath = tableView.indexPathForSelectedRow,
-                let destinationVC = segue.destination as? MessageThreadDetailTableViewController else { return }
+                let destinationVC = segue.destination as? MessageDetailViewController else { return }
             
             destinationVC.messageThreadController = messageThreadController
             destinationVC.messageThread = messageThreadController.messageThreads[indexPath.row]

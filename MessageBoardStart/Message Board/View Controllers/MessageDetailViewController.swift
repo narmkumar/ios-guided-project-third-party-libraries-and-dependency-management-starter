@@ -2,35 +2,59 @@
 //  MessageDetailViewController.swift
 //  Message Board
 //
-//  Created by Spencer Curtis on 8/7/18.
-//  Copyright © 2018 Lambda School. All rights reserved.
+//  Created by Niranjan Kumar on 12/17/19.
+//  Copyright © 2019 Lambda School. All rights reserved.
 //
 
 import UIKit
+import MessageKit
+import InputBarAccessoryView
 
-class MessageDetailViewController: UIViewController {
-
-    // MARK: - Properties
+class MessageDetailViewController: MessagesViewController, InputBarAccessoryViewDelegate {
     
-    var messageThreadController: MessageThreadController?
     var messageThread: MessageThread?
+    var messageThreadController: MessageThreadController?
     
-    @IBOutlet weak var senderNameTextField: UITextField!
-    @IBOutlet weak var messageTextView: UITextView!
-
-    // MARK: - Actions
+    private lazy var formatter: DateFormatter = {
+        let result = DateFormatter()
+        result.dateStyle = .medium
+        result.timeStyle = .medium
+        return result
+    }()
     
-    @IBAction func sendMessage(_ sender: Any) {
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
         
-        guard let senderName = senderNameTextField.text,
-            let messageText = messageTextView.text,
-            let messageThread = messageThread else { return }
+        messageInputBar.delegate = self
         
-        messageThreadController?.createMessage(in: messageThread, withText: messageText, sender: senderName, completion: {
-            DispatchQueue.main.async {
-                self.navigationController?.popViewController(animated: true)
-            }
-        })
     }
-
+    
 }
+
+extension MessageDetailViewController: MessagesDataSource {
+    // Required Delegate Methods:
+    func currentSender() -> SenderType {
+        if let currentUser = messageThreadController?.currentUser {
+            return currentUser
+        } else {
+            return Sender(senderId: "foo", displayName: "bar")
+        }
+    }
+    
+    func numberOfSections(in messagesCollectionView: MessagesCollectionView) -> Int {
+        return 1
+    }
+    
+    func numberOfItems(inSection section: Int, in messagesCollectionView: MessagesCollectionView) -> Int {
+        messageThread?.messages.count ?? 0
+    }
+    
+    func messageForItem(at indexPath: IndexPath, in messagesCollectionView: MessagesCollectionView) -> MessageType {
+        guard let message = messageThread?.messages[indexPath.item] else {
+            fatalError("No message found in thread.")
+        }
+        return message
+    }
+}
+
